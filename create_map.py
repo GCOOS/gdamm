@@ -301,6 +301,59 @@ def add_save_button(m):
     m.get_root().html.add_child(folium.Element(save_script))
 
 
+def add_title(m, title):
+    """Add a professional title banner to the map."""
+    from branca.element import MacroElement, Template
+
+    title_html = f'''
+        <div id="map-title" style="
+            padding: 12px 24px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 4px;
+            border: 3px solid black;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+            font-family: 'Georgia', 'Times New Roman', serif;
+            text-align: center;">
+            <div style="font-size: 18px; font-weight: bold; color: #003366;
+                        letter-spacing: 0.5px;">
+                {title}
+            </div>
+        </div>
+    '''
+
+    class TitleControl(MacroElement):
+        """Custom title control that renders at top center of map."""
+
+        def __init__(self, html):
+            super().__init__()
+            self._template = Template(f'''
+                {{% macro script(this, kwargs) %}}
+                var titleControl = L.control({{position: 'topcenter'}});
+
+                // Add topcenter position to Leaflet if not exists
+                if (!L.Control.prototype._topcenter) {{
+                    var corners = {{{{this._parent.get_name()}}}}._controlCorners;
+                    var container = {{{{this._parent.get_name()}}}}._controlContainer;
+                    corners['topcenter'] = L.DomUtil.create(
+                        'div', 'leaflet-top leaflet-center', container
+                    );
+                    corners['topcenter'].style.left = '50%';
+                    corners['topcenter'].style.transform = 'translateX(-50%)';
+                    corners['topcenter'].style.marginTop = '10px';
+                }}
+
+                titleControl.onAdd = function(map) {{
+                    var div = L.DomUtil.create('div', 'title-control');
+                    div.innerHTML = `{html}`;
+                    return div;
+                }};
+                titleControl.addTo({{{{this._parent.get_name()}}}});
+                {{% endmacro %}}
+            ''')
+
+    m.add_child(TitleControl(title_html))
+
+
 def main():
     """Main entry point."""
     parser = argparse.ArgumentParser(
@@ -320,6 +373,10 @@ def main():
         '--markers',
         action='store_true',
         help='Show start/end markers on tracks'
+    )
+    parser.add_argument(
+        '--title',
+        help='Title to display on map'
     )
     args = parser.parse_args()
 
@@ -349,6 +406,8 @@ def main():
 
     add_legend(m, active_years, year_colors, year_counts, show_markers=args.markers)
     add_save_button(m)
+    if args.title:
+        add_title(m, args.title)
 
     print(f"Saving map to {args.output_path}...")
     m.save(args.output_path)
