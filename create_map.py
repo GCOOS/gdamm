@@ -9,14 +9,26 @@ import duckdb
 import folium
 
 
-# Year color scheme
-YEAR_COLORS = {
-    2023: '#e41a1c',  # Red
-    2024: '#377eb8',  # Blue
-    2025: '#4daf4a',  # Green
-}
+# Colorblind-friendly palette (based on Wong, 2011 - Nature Methods)
+# https://www.nature.com/articles/nmeth.1618
+COLORBLIND_PALETTE = [
+    '#0072B2',  # Blue
+    '#D55E00',  # Vermillion
+    '#009E73',  # Bluish green
+    '#CC79A7',  # Reddish purple
+    '#F0E442',  # Yellow
+    '#56B4E9',  # Sky blue
+    '#E69F00',  # Orange
+]
 
-DEFAULT_COLOR = '#999999'  # Gray for unknown years
+
+def generate_year_colors(years):
+    """Generate color mapping for years using colorblind-friendly palette."""
+    sorted_years = sorted(years)
+    colors = {}
+    for i, year in enumerate(sorted_years):
+        colors[year] = COLORBLIND_PALETTE[i % len(COLORBLIND_PALETTE)]
+    return colors
 
 
 def get_deployments(db_path):
@@ -68,7 +80,7 @@ def calculate_bounds(deployments):
     return [[min(all_lats), min(all_lons)], [max(all_lats), max(all_lons)]]
 
 
-def create_map(deployments):
+def create_map(deployments, year_colors):
     """Create a Folium map with deployment tracks."""
     bounds = calculate_bounds(deployments)
     if not bounds:
@@ -99,7 +111,7 @@ def create_map(deployments):
         if not coords:
             continue
 
-        color = YEAR_COLORS.get(year, DEFAULT_COLOR)
+        color = year_colors.get(year, '#999999')
         tooltip = f"{name} ({region}, {year})"
 
         folium.PolyLine(
@@ -138,11 +150,11 @@ def create_map(deployments):
     return m
 
 
-def add_legend(m, active_years):
+def add_legend(m, active_years, year_colors):
     """Add a year-based legend as a map control (included in PNG export)."""
     legend_items = ''
     for year in sorted(active_years):
-        color = YEAR_COLORS.get(year, DEFAULT_COLOR)
+        color = year_colors.get(year, '#999999')
         legend_items += f'''
             <div style="display: flex; align-items: center; margin: 3px 0;">
                 <span style="background-color: {color}; width: 20px;
@@ -304,12 +316,15 @@ def main():
         sys.exit(1)
 
     print("Creating map...")
-    m = create_map(deployments)
+    active_years = set(d[2] for d in deployments)
+    year_colors = generate_year_colors(active_years)
+    print(f"Years: {sorted(active_years)}")
+
+    m = create_map(deployments, year_colors)
     if not m:
         sys.exit(1)
 
-    active_years = set(d[2] for d in deployments)
-    add_legend(m, active_years)
+    add_legend(m, active_years, year_colors)
     add_save_button(m)
 
     print(f"Saving map to {args.output_path}...")

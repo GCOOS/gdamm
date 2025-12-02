@@ -39,7 +39,8 @@ python -c "import duckdb; print(duckdb.connect('data/db/gliders.db').execute('SE
 
 ### Map Features
 - USGS Topo basemap (includes "Gulf of America" labeling)
-- Year colors: 2023=red, 2024=blue, 2025=green
+- Colorblind-friendly palette from Wong (2011) Nature Methods
+- Colors auto-assigned to years in chronological order
 - Green circle = deployment start, Black circle = deployment end
 - PNG export via dom-to-image-more library
 

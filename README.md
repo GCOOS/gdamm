@@ -7,10 +7,17 @@ output with PNG export capability.
 ## Features
 
 - Interactive Leaflet map with USGS Topo basemap
-- Year-based color coding for deployment tracks (2023, 2024, 2025)
+- Colorblind-friendly palette for year-based track coloring (Wong, 2011)
+- Dynamic color assignment for any year in the dataset
 - Start/end markers (green/black) to distinguish overlapping tracks
 - Save to PNG button for publication-ready images
 - DuckDB backend for efficient data storage
+
+## Color Palette
+
+Track colors use the colorblind-friendly palette from
+[Wong (2011) Nature Methods](https://www.nature.com/articles/nmeth.1618).
+Colors are automatically assigned to years in chronological order.
 
 ## Installation
 
