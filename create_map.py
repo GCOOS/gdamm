@@ -151,16 +151,24 @@ def create_map(deployments, year_colors, show_markers=False):
     return m
 
 
-def add_legend(m, active_years, year_colors, show_markers=False):
+def add_legend(m, active_years, year_colors, year_counts, show_markers=False):
     """Add a year-based legend as a map control (included in PNG export)."""
     legend_items = ''
     for year in sorted(active_years):
         color = year_colors.get(year, '#999999')
+        count = year_counts.get(year, 0)
         legend_items += f'''
             <div style="display: flex; align-items: center; margin: 3px 0;">
                 <span style="background-color: {color}; width: 20px;
                              height: 4px; margin-right: 8px;"></span>
-                <span>{year}</span>
+                <span>{year}: {count}</span>
+            </div>'''
+
+    total = sum(year_counts.values())
+    total_row = f'''
+            <div style="border-top: 1px solid #ccc; margin-top: 8px;
+                        padding-top: 8px; font-weight: bold;">
+                Total: {total}
             </div>'''
 
     marker_legend = ''
@@ -195,6 +203,7 @@ def add_legend(m, active_years, year_colors, show_markers=False):
                 Deployment Year
             </div>
             {legend_items}
+            {total_row}
             {marker_legend}
         </div>
     '''
@@ -329,13 +338,16 @@ def main():
     print("Creating map...")
     active_years = set(d[2] for d in deployments)
     year_colors = generate_year_colors(active_years)
+    year_counts = {}
+    for d in deployments:
+        year_counts[d[2]] = year_counts.get(d[2], 0) + 1
     print(f"Years: {sorted(active_years)}")
 
     m = create_map(deployments, year_colors, show_markers=args.markers)
     if not m:
         sys.exit(1)
 
-    add_legend(m, active_years, year_colors, show_markers=args.markers)
+    add_legend(m, active_years, year_colors, year_counts, show_markers=args.markers)
     add_save_button(m)
 
     print(f"Saving map to {args.output_path}...")
