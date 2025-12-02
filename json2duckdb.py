@@ -79,10 +79,11 @@ def points_to_linestring(points):
 
 def check_existing(con, name, region, year):
     """Check if deployment already exists in database."""
-    existing = con.execute(
-        "SELECT id FROM deployments WHERE name = ? AND region = ? AND year = ?",
-        [name, region, year]
-    ).fetchone()
+    query = (
+        "SELECT id FROM deployments "
+        "WHERE name = ? AND region = ? AND year = ?"
+    )
+    existing = con.execute(query, [name, region, year]).fetchone()
     return existing is not None
 
 
@@ -174,8 +175,8 @@ def import_directory(con, data_dir, force):
     return stats['errors'] == 0
 
 
-def main():
-    """Main entry point."""
+def parse_args():
+    """Parse command line arguments."""
     parser = argparse.ArgumentParser(
         description='Import GeoJSON glider data into DuckDB'
     )
@@ -198,7 +199,12 @@ def main():
         action='store_true',
         help='Overwrite existing deployment data'
     )
-    args = parser.parse_args()
+    return parser.parse_args()
+
+
+def main():
+    """Main entry point."""
+    args = parse_args()
 
     con = duckdb.connect(args.db)
     create_schema(con)
@@ -207,7 +213,7 @@ def main():
         result = import_single_file(con, args.data_file, args.force)
         con.close()
         if result is True:
-            print(f"{Fore.GREEN}Import completed successfully{Style.RESET_ALL}")
+            print(f"{Fore.GREEN}Import completed{Style.RESET_ALL}")
         elif result is None:
             sys.exit(0)
         else:

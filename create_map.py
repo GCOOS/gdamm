@@ -80,6 +80,53 @@ def calculate_bounds(deployments):
     return [[min(all_lats), min(all_lons)], [max(all_lats), max(all_lons)]]
 
 
+def add_track_markers(m, coords, name):
+    """Add start/end markers for a deployment track."""
+    # Start marker (Wong bluish green)
+    folium.CircleMarker(
+        location=coords[0],
+        radius=4,
+        color='#009E73',
+        fill=True,
+        fill_color='#009E73',
+        fill_opacity=1.0,
+        tooltip=f"Start: {name}"
+    ).add_to(m)
+
+    # End marker (black)
+    folium.CircleMarker(
+        location=coords[-1],
+        radius=4,
+        color='black',
+        fill=True,
+        fill_color='black',
+        fill_opacity=1.0,
+        tooltip=f"End: {name}"
+    ).add_to(m)
+
+
+def add_deployment_track(m, deployment, year_colors, show_markers):
+    """Add a single deployment track to the map."""
+    name, region, year, geometry = deployment
+    coords = parse_linestring(geometry)
+    if not coords:
+        return
+
+    color = year_colors.get(year, '#999999')
+    tooltip = f"{name} ({region}, {year})"
+
+    folium.PolyLine(
+        locations=coords,
+        weight=2,
+        color=color,
+        opacity=0.8,
+        tooltip=tooltip
+    ).add_to(m)
+
+    if show_markers:
+        add_track_markers(m, coords, name)
+
+
 def create_map(deployments, year_colors, show_markers=False):
     """Create a Folium map with deployment tracks."""
     bounds = calculate_bounds(deployments)
@@ -87,7 +134,6 @@ def create_map(deployments, year_colors, show_markers=False):
         print("Error: No valid coordinates found")
         return None
 
-    # Create map centered on data
     center_lat = (bounds[0][0] + bounds[1][0]) / 2
     center_lon = (bounds[0][1] + bounds[1][1]) / 2
 
@@ -105,92 +151,55 @@ def create_map(deployments, year_colors, show_markers=False):
         max_zoom=16
     )
 
-    # Add deployment tracks with start/end markers
-    for name, region, year, geometry in deployments:
-        coords = parse_linestring(geometry)
-        if not coords:
-            continue
+    for deployment in deployments:
+        add_deployment_track(m, deployment, year_colors, show_markers)
 
-        color = year_colors.get(year, '#999999')
-        tooltip = f"{name} ({region}, {year})"
-
-        folium.PolyLine(
-            locations=coords,
-            weight=2,
-            color=color,
-            opacity=0.8,
-            tooltip=tooltip
-        ).add_to(m)
-
-        if show_markers:
-            # Start marker (Wong bluish green)
-            folium.CircleMarker(
-                location=coords[0],
-                radius=4,
-                color='#009E73',
-                fill=True,
-                fill_color='#009E73',
-                fill_opacity=1.0,
-                tooltip=f"Start: {name}"
-            ).add_to(m)
-
-            # End marker (black)
-            folium.CircleMarker(
-                location=coords[-1],
-                radius=4,
-                color='black',
-                fill=True,
-                fill_color='black',
-                fill_opacity=1.0,
-                tooltip=f"End: {name}"
-            ).add_to(m)
-
-    # Fit map to bounds
     m.fit_bounds(bounds)
-
     return m
 
 
-def add_legend(m, active_years, year_colors, year_counts, show_markers=False):
-    """Add a year-based legend as a map control (included in PNG export)."""
-    legend_items = ''
+def build_year_items_html(active_years, year_colors, year_counts):
+    """Build HTML for year legend items."""
+    items = ''
     for year in sorted(active_years):
         color = year_colors.get(year, '#999999')
         count = year_counts.get(year, 0)
-        legend_items += f'''
+        items += f'''
             <div style="display: flex; align-items: center; margin: 3px 0;">
                 <span style="background-color: {color}; width: 20px;
                              height: 4px; margin-right: 8px;"></span>
                 <span>{year}: {count}</span>
             </div>'''
+    return items
 
-    total = sum(year_counts.values())
+
+def build_marker_legend_html():
+    """Build HTML for start/end marker legend."""
+    flex_style = 'display:flex;align-items:center;margin:3px 0'
+    dot = 'width:10px;height:10px;border-radius:50%;margin-right:8px'
+    return f'''
+            <div style="border-top:1px solid #ccc;margin-top:8px;
+                        padding-top:8px;">
+                <div style="{flex_style};">
+                    <span style="background-color:#009E73;{dot};"></span>
+                    <span>Start</span>
+                </div>
+                <div style="{flex_style};">
+                    <span style="background-color:black;{dot};"></span>
+                    <span>End</span>
+                </div>
+            </div>'''
+
+
+def build_legend_html(legend_items, total, marker_legend):
+    """Build complete legend HTML."""
     total_row = f'''
             <div style="border-top: 1px solid #ccc; margin-top: 8px;
                         padding-top: 8px; font-weight: bold;">
                 Total: {total}
             </div>'''
 
-    marker_legend = ''
-    if show_markers:
-        marker_legend = '''
-            <div style="border-top: 1px solid #ccc; margin-top: 8px;
-                        padding-top: 8px;">
-                <div style="display: flex; align-items: center; margin: 3px 0;">
-                    <span style="background-color: #009E73; width: 10px;
-                                 height: 10px; border-radius: 50%;
-                                 margin-right: 8px;"></span>
-                    <span>Start</span>
-                </div>
-                <div style="display: flex; align-items: center; margin: 3px 0;">
-                    <span style="background-color: black; width: 10px;
-                                 height: 10px; border-radius: 50%;
-                                 margin-right: 8px;"></span>
-                    <span>End</span>
-                </div>
-            </div>'''
-
-    legend_html = f'''
+    return f'''
         <div id="map-legend" style="
             padding: 10px 14px;
             background: white;
@@ -208,7 +217,17 @@ def add_legend(m, active_years, year_colors, year_counts, show_markers=False):
         </div>
     '''
 
+
+def add_legend(m, active_years, year_colors, year_counts, show_markers=False):
+    """Add a year-based legend as a map control (included in PNG export)."""
     from branca.element import MacroElement, Template
+
+    legend_items = build_year_items_html(
+        active_years, year_colors, year_counts
+    )
+    marker_legend = build_marker_legend_html() if show_markers else ''
+    total = sum(year_counts.values())
+    legend_html = build_legend_html(legend_items, total, marker_legend)
 
     class LegendControl(MacroElement):
         """Custom legend control that renders inside the map."""
@@ -230,10 +249,9 @@ def add_legend(m, active_years, year_colors, year_counts, show_markers=False):
     m.add_child(LegendControl(legend_html))
 
 
-def add_save_button(m):
-    """Add Save to PNG button using dom-to-image for proper map capture."""
-    save_script = '''
-    <script src="https://unpkg.com/dom-to-image-more@3.3.0/dist/dom-to-image-more.min.js"></script>
+def get_save_button_css():
+    """Return CSS for save button styling."""
+    return '''
     <style>
         .save-button {
             position: absolute;
@@ -251,7 +269,12 @@ def add_save_button(m):
         }
         .save-button:hover { background-color: #45a049; }
         .save-button:disabled { background-color: #cccccc; cursor: wait; }
-    </style>
+    </style>'''
+
+
+def get_save_button_js():
+    """Return JavaScript for save button functionality."""
+    return '''
     <script>
     document.addEventListener('DOMContentLoaded', function() {
         var mapContainer = document.querySelector('.folium-map');
@@ -259,44 +282,45 @@ def add_save_button(m):
         btn.className = 'save-button';
         btn.innerHTML = 'Save to PNG';
         mapContainer.appendChild(btn);
-
+        function resetBtn() {
+            btn.style.display = 'block';
+            btn.disabled = false;
+            btn.innerHTML = 'Save to PNG';
+        }
         btn.onclick = function() {
             btn.disabled = true;
             btn.innerHTML = 'Generating...';
-
-            // Hide the button during capture
             btn.style.display = 'none';
-
-            // Wait for tiles to finish loading
             setTimeout(function() {
-                domtoimage.toPng(mapContainer, {
-                    quality: 1.0,
-                    bgcolor: '#ffffff',
-                    style: {
-                        'transform': 'none'
-                    }
-                })
+                domtoimage.toPng(mapContainer, {quality: 1.0, bgcolor: '#fff'})
                 .then(function(dataUrl) {
                     var link = document.createElement('a');
                     link.download = 'hurricane_glider_map.png';
                     link.href = dataUrl;
                     link.click();
-
-                    btn.style.display = 'block';
-                    btn.disabled = false;
-                    btn.innerHTML = 'Save to PNG';
+                    resetBtn();
                 })
-                .catch(function(error) {
-                    console.error('Error:', error);
-                    btn.style.display = 'block';
-                    btn.disabled = false;
-                    btn.innerHTML = 'Save to PNG';
+                .catch(function(e) {
+                    console.error('Error:', e);
+                    resetBtn();
                     alert('Error generating image. Try again.');
                 });
             }, 500);
         };
     });
-    </script>
+    </script>'''
+
+
+def add_save_button(m):
+    """Add Save to PNG button using dom-to-image for proper map capture."""
+    lib_url = (
+        'https://unpkg.com/dom-to-image-more@3.3.0/'
+        'dist/dom-to-image-more.min.js'
+    )
+    save_script = f'''
+    <script src="{lib_url}"></script>
+    {get_save_button_css()}
+    {get_save_button_js()}
     '''
     m.get_root().html.add_child(folium.Element(save_script))
 
@@ -328,12 +352,13 @@ def add_title(m, title):
             super().__init__()
             self._template = Template(f'''
                 {{% macro script(this, kwargs) %}}
+                var mapObj = {{{{this._parent.get_name()}}}};
                 var titleControl = L.control({{position: 'topcenter'}});
 
                 // Add topcenter position to Leaflet if not exists
                 if (!L.Control.prototype._topcenter) {{
-                    var corners = {{{{this._parent.get_name()}}}}._controlCorners;
-                    var container = {{{{this._parent.get_name()}}}}._controlContainer;
+                    var corners = mapObj._controlCorners;
+                    var container = mapObj._controlContainer;
                     corners['topcenter'] = L.DomUtil.create(
                         'div', 'leaflet-top leaflet-center', container
                     );
@@ -347,15 +372,15 @@ def add_title(m, title):
                     div.innerHTML = `{html}`;
                     return div;
                 }};
-                titleControl.addTo({{{{this._parent.get_name()}}}});
+                titleControl.addTo(mapObj);
                 {{% endmacro %}}
             ''')
 
     m.add_child(TitleControl(title_html))
 
 
-def main():
-    """Main entry point."""
+def parse_args():
+    """Parse command line arguments."""
     parser = argparse.ArgumentParser(
         description='Generate Leaflet map from glider deployment data'
     )
@@ -378,7 +403,20 @@ def main():
         '--title',
         help='Title to display on map'
     )
-    args = parser.parse_args()
+    return parser.parse_args()
+
+
+def count_deployments_by_year(deployments):
+    """Count deployments per year."""
+    year_counts = {}
+    for d in deployments:
+        year_counts[d[2]] = year_counts.get(d[2], 0) + 1
+    return year_counts
+
+
+def main():
+    """Main entry point."""
+    args = parse_args()
 
     if not Path(args.db).exists():
         print(f"Error: Database not found: {args.db}")
@@ -395,16 +433,16 @@ def main():
     print("Creating map...")
     active_years = set(d[2] for d in deployments)
     year_colors = generate_year_colors(active_years)
-    year_counts = {}
-    for d in deployments:
-        year_counts[d[2]] = year_counts.get(d[2], 0) + 1
+    year_counts = count_deployments_by_year(deployments)
     print(f"Years: {sorted(active_years)}")
 
     m = create_map(deployments, year_colors, show_markers=args.markers)
     if not m:
         sys.exit(1)
 
-    add_legend(m, active_years, year_colors, year_counts, show_markers=args.markers)
+    add_legend(
+        m, active_years, year_colors, year_counts, show_markers=args.markers
+    )
     add_save_button(m)
     if args.title:
         add_title(m, args.title)

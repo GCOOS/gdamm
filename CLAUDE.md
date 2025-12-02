@@ -9,10 +9,11 @@ code in this repository.
 
 ### Import deployment data
 ```bash
-# Single file
-python json2duckdb.py --data-file <geojson> --db data/db/gliders.db [--force]
+# Single file (path must follow data/<region>/<year>/<name>.json structure)
+python json2duckdb.py --data-file data/gcoos/2024/deployment.json \
+                      --db data/db/gliders.db [--force]
 
-# Bulk import
+# Bulk import (recursively finds all .json files)
 python json2duckdb.py --data-dir data --db data/db/gliders.db [--force]
 ```
 
@@ -27,7 +28,9 @@ Optional arguments:
 
 ### Query database
 ```bash
-python -c "import duckdb; print(duckdb.connect('data/db/gliders.db').execute('SELECT * FROM deployments').fetchdf())"
+python -c "import duckdb; \
+  print(duckdb.connect('data/db/gliders.db').execute( \
+    'SELECT * FROM deployments').fetchdf())"
 ```
 
 ## Architecture
@@ -38,6 +41,16 @@ python -c "import duckdb; print(duckdb.connect('data/db/gliders.db').execute('SE
    DuckDB with metadata (name, region, year, start/end times)
 3. `create_map.py` queries DuckDB, renders Folium/Leaflet map with year-colored
    tracks, start/end markers, and PNG export capability
+
+### Key Functions
+- `json2duckdb.py`:
+  - `extract_metadata()` - parses region/year/name from file path structure
+  - `parse_geojson()` - reads GeoJSON, extracts time-sorted points
+  - `points_to_linestring()` - converts points to WKT LineString
+- `create_map.py`:
+  - `create_map()` - builds Folium map with deployment tracks
+  - `add_legend()` - adds Leaflet control with year colors and counts
+  - `add_title()` - adds centered title banner via custom Leaflet control
 
 ### Database Schema (DuckDB)
 - **deployments**: id, name, region, year, start_time, end_time, geometry (WKT)
@@ -55,5 +68,5 @@ python -c "import duckdb; print(duckdb.connect('data/db/gliders.db').execute('SE
 ## Dependencies
 
 - duckdb
-- folium
+- folium (includes branca)
 - colorama

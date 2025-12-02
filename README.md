@@ -85,3 +85,36 @@ Colors are automatically assigned to years in chronological order.
 - **caracoos**: Caribbean Coastal Ocean Observing System
 - **maracoos**: Mid-Atlantic Regional Association Coastal Ocean Observing System
 - **secoora**: Southeast Coastal Ocean Observing Regional Association
+
+## Current Status
+
+Tested with 30 deployments across 4 regions (2023-2025):
+
+| Component | Status |
+|-----------|--------|
+| Data import (single file) | ✓ Passing |
+| Data import (bulk) | ✓ Passing |
+| Data import (--force) | ✓ Passing |
+| Map generation | ✓ Passing |
+| Title banner (--title) | ✓ Passing |
+| Start/end markers (--markers) | ✓ Passing |
+| PNG export | ✓ Passing |
+| PEP-8 compliance | ✓ Passing |
+
+## Coming Soon
+
+### Direct GDAC Access via erddapy
+
+Future versions will support pulling deployment data directly from the
+[IOOS Glider DAC ERDDAP](https://gliders.ioos.us/erddap/) server using
+[erddapy](https://github.com/ioos/erddapy), eliminating the need for manual
+GeoJSON downloads.
+
+Planned usage:
+```bash
+# Import directly from GDAC (planned)
+python json2duckdb.py --gdac --region gcoos --year 2024 --db data/db/gliders.db
+```
+
+This will query the ERDDAP server for available deployments, download track
+data, and import directly into the local DuckDB database.
