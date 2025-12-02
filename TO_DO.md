@@ -1,8 +1,8 @@
-# TODO: Hurricane Glider Map Project
+# TODO: GDAMM (GDAC Automated Map Maker)
 
 ## Project Overview
-Build a single-page web app displaying autonomous underwater vehicle deployment
-tracks on a Leaflet map.
+A command-line tool for importing glider deployment data and generating
+publication-quality Leaflet maps.
 
 ## Data Regions
 - gcoos
@@ -31,14 +31,16 @@ Data coverage: 2023, 2024, 2025
   - Display deployment linestrings
   - Colorblind-friendly palette (Wong, 2011)
   - Dynamic color assignment for any year
-  - Start/end markers to distinguish overlapping tracks
+  - Optional start/end markers (--markers)
+  - Optional title banner (--title)
+  - Deployment counts in legend
 - [x] Add "Save to PNG" button for publication-quality images
 
 ### Phase 3: Testing & Iteration
 - [x] Test with initial gcoos sample file
 - [x] Add and test additional files from each region
 - [x] Validate data ingestion as new files are added
-- [ ] Quality assurance for publication-ready output
+- [x] Quality assurance for publication-ready output
 
 ## Future Enhancements
 

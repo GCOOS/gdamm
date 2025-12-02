@@ -3,6 +3,8 @@
 This file provides guidance to Claude Code (claude.ai/code) when working with
 code in this repository.
 
+## Project: GDAMM (GDAC Automated Map Maker)
+
 ## Commands
 
 ### Import deployment data
@@ -18,6 +20,10 @@ python json2duckdb.py --data-dir data --db data/db/gliders.db [--force]
 ```bash
 python create_map.py --db data/db/gliders.db --output-path maps/glider_tracks.html
 ```
+
+Optional arguments:
+- `--title "Title Text"`: Add title banner to map
+- `--markers`: Show start/end markers on tracks
 
 ### Query database
 ```bash
@@ -41,7 +47,9 @@ python -c "import duckdb; print(duckdb.connect('data/db/gliders.db').execute('SE
 - USGS Topo basemap (includes "Gulf of America" labeling)
 - Colorblind-friendly palette from Wong (2011) Nature Methods
 - Colors auto-assigned to years in chronological order
-- Green circle = deployment start, Black circle = deployment end
+- Optional start/end markers (green=start, black=end)
+- Optional title banner
+- Deployment counts in legend
 - PNG export via dom-to-image-more library
 
 ## Dependencies

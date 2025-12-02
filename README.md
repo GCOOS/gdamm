@@ -1,23 +1,21 @@
-# Hurricane Glider Map
+# GDAMM - GDAC Automated Map Maker
 
-A web application for visualizing autonomous underwater vehicle (glider)
-deployment tracks on an interactive Leaflet map. Designed for publication-quality
+A command-line tool for visualizing autonomous underwater vehicle (glider)
+deployment tracks on interactive Leaflet maps. Designed for publication-quality
 output with PNG export capability.
 
 ## Features
 
+- Import glider deployment data from GeoJSON files
+- Bulk import from directory trees
 - Interactive Leaflet map with USGS Topo basemap
-- Colorblind-friendly palette for year-based track coloring (Wong, 2011)
+- Colorblind-friendly palette (Wong, 2011) for year-based track coloring
 - Dynamic color assignment for any year in the dataset
-- Start/end markers (green/black) to distinguish overlapping tracks
+- Optional start/end markers to distinguish overlapping tracks
+- Optional title banner for presentations
+- Deployment counts per year in legend
 - Save to PNG button for publication-ready images
 - DuckDB backend for efficient data storage
-
-## Color Palette
-
-Track colors use the colorblind-friendly palette from
-[Wong (2011) Nature Methods](https://www.nature.com/articles/nmeth.1618).
-Colors are automatically assigned to years in chronological order.
 
 ## Installation
 
@@ -44,9 +42,20 @@ Options:
 ### Generate Map
 
 ```bash
+# Basic map
 python create_map.py --db data/db/gliders.db \
                      --output-path maps/glider_tracks.html
+
+# With title and markers
+python create_map.py --db data/db/gliders.db \
+                     --output-path maps/glider_tracks.html \
+                     --title "My Glider Deployments" \
+                     --markers
 ```
+
+Options:
+- `--title`: Add title banner to map
+- `--markers`: Show start/end markers on tracks
 
 ## Data Structure
 
@@ -63,6 +72,12 @@ data/
 
 GeoJSON files should contain Point features with `time` properties. The import
 tool converts these to LineString geometries ordered by timestamp.
+
+## Color Palette
+
+Track colors use the colorblind-friendly palette from
+[Wong (2011) Nature Methods](https://www.nature.com/articles/nmeth.1618).
+Colors are automatically assigned to years in chronological order.
 
 ## Regions
 
