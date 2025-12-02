@@ -4,6 +4,8 @@ A command-line tool for visualizing autonomous underwater vehicle (glider)
 deployment tracks on interactive Leaflet maps. Designed for publication-quality
 output with PNG export capability.
 
+![Example GDAMM output](gdamm_map.png)
+
 ## Features
 
 - Import glider deployment data from GeoJSON files
