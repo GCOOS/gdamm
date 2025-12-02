@@ -1,2 +1,61 @@
-This project will collect a series of json files consisting primarily of linestrings. There are four regions, which can be found in the data directory: gcoos, caracoos, maracoos and secoora. Each file will contain the linestring for one deployment of an autonomous underwater vehicle. The data will cover the years 2023,2024 and 2025. We want to build a clean, professional looking single page web app that displays the linetracks of all the deployments on a Leaflet map. Each year should be a different color. Each region can be the same color -- we don't need to distinguish between regions, only years. There should be a 'save to png' button so we can produce a publication worthy image. We will start by testing only file from the gcoos region. I will provide the filename. Once the basic app is working, we will add additional files to each region and test as we continue to ingest new data. NOTE: Let's plan on creating a DuckDB of all the missions, so we don't have to continually parse the JSON files. We therefore will need a standalone app that can take --data-file and --db as args and update the DuckDB file. Once we have all data ingested, we'll need a 'create_map' app that takes --db and --output-path args and produces the html map. 
-# hurricane_glider_map
+# Hurricane Glider Map
+
+A web application for visualizing autonomous underwater vehicle (glider)
+deployment tracks on an interactive Leaflet map. Designed for publication-quality
+output with PNG export capability.
+
+## Features
+
+- Interactive Leaflet map with USGS Topo basemap
+- Year-based color coding for deployment tracks (2023, 2024, 2025)
+- Start/end markers (green/red) to distinguish overlapping tracks
+- Save to PNG button for publication-ready images
+- DuckDB backend for efficient data storage
+
+## Installation
+
+```bash
+pip install duckdb folium colorama
+```
+
+## Usage
+
+### Import GeoJSON Data
+
+```bash
+python json2duckdb.py --data-file data/<region>/<year>/<file>.json \
+                      --db data/db/gliders.db
+```
+
+Options:
+- `--force`: Overwrite existing deployment data
+
+### Generate Map
+
+```bash
+python create_map.py --db data/db/gliders.db \
+                     --output-path maps/glider_tracks.html
+```
+
+## Data Structure
+
+```
+data/
+├── db/
+│   └── gliders.db
+├── gcoos/
+│   └── 2023/
+├── caracoos/
+├── maracoos/
+└── secoora/
+```
+
+GeoJSON files should contain Point features with `time` properties. The import
+tool converts these to LineString geometries ordered by timestamp.
+
+## Regions
+
+- **gcoos**: Gulf of America Coastal Ocean Observing System
+- **caracoos**: Caribbean Coastal Ocean Observing System
+- **maracoos**: Mid-Atlantic Regional Association Coastal Ocean Observing System
+- **secoora**: Southeast Coastal Ocean Observing Regional Association
