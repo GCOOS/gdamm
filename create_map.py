@@ -122,13 +122,13 @@ def create_map(deployments, year_colors):
             tooltip=tooltip
         ).add_to(m)
 
-        # Start marker (green)
+        # Start marker (Wong bluish green)
         folium.CircleMarker(
             location=coords[0],
             radius=5,
-            color='green',
+            color='#009E73',
             fill=True,
-            fill_color='green',
+            fill_color='#009E73',
             fill_opacity=1.0,
             tooltip=f"Start: {name}"
         ).add_to(m)
@@ -178,7 +178,7 @@ def add_legend(m, active_years, year_colors):
             <div style="border-top: 1px solid #ccc; margin-top: 8px;
                         padding-top: 8px;">
                 <div style="display: flex; align-items: center; margin: 3px 0;">
-                    <span style="background-color: green; width: 10px;
+                    <span style="background-color: #009E73; width: 10px;
                                  height: 10px; border-radius: 50%;
                                  margin-right: 8px;"></span>
                     <span>Start</span>
