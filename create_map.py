@@ -80,7 +80,7 @@ def calculate_bounds(deployments):
     return [[min(all_lats), min(all_lons)], [max(all_lats), max(all_lons)]]
 
 
-def create_map(deployments, year_colors):
+def create_map(deployments, year_colors, show_markers=False):
     """Create a Folium map with deployment tracks."""
     bounds = calculate_bounds(deployments)
     if not bounds:
@@ -122,27 +122,28 @@ def create_map(deployments, year_colors):
             tooltip=tooltip
         ).add_to(m)
 
-        # Start marker (Wong bluish green)
-        folium.CircleMarker(
-            location=coords[0],
-            radius=4,
-            color='#009E73',
-            fill=True,
-            fill_color='#009E73',
-            fill_opacity=1.0,
-            tooltip=f"Start: {name}"
-        ).add_to(m)
+        if show_markers:
+            # Start marker (Wong bluish green)
+            folium.CircleMarker(
+                location=coords[0],
+                radius=4,
+                color='#009E73',
+                fill=True,
+                fill_color='#009E73',
+                fill_opacity=1.0,
+                tooltip=f"Start: {name}"
+            ).add_to(m)
 
-        # End marker (black)
-        folium.CircleMarker(
-            location=coords[-1],
-            radius=4,
-            color='black',
-            fill=True,
-            fill_color='black',
-            fill_opacity=1.0,
-            tooltip=f"End: {name}"
-        ).add_to(m)
+            # End marker (black)
+            folium.CircleMarker(
+                location=coords[-1],
+                radius=4,
+                color='black',
+                fill=True,
+                fill_color='black',
+                fill_opacity=1.0,
+                tooltip=f"End: {name}"
+            ).add_to(m)
 
     # Fit map to bounds
     m.fit_bounds(bounds)
@@ -150,7 +151,7 @@ def create_map(deployments, year_colors):
     return m
 
 
-def add_legend(m, active_years, year_colors):
+def add_legend(m, active_years, year_colors, show_markers=False):
     """Add a year-based legend as a map control (included in PNG export)."""
     legend_items = ''
     for year in sorted(active_years):
@@ -160,6 +161,25 @@ def add_legend(m, active_years, year_colors):
                 <span style="background-color: {color}; width: 20px;
                              height: 4px; margin-right: 8px;"></span>
                 <span>{year}</span>
+            </div>'''
+
+    marker_legend = ''
+    if show_markers:
+        marker_legend = '''
+            <div style="border-top: 1px solid #ccc; margin-top: 8px;
+                        padding-top: 8px;">
+                <div style="display: flex; align-items: center; margin: 3px 0;">
+                    <span style="background-color: #009E73; width: 10px;
+                                 height: 10px; border-radius: 50%;
+                                 margin-right: 8px;"></span>
+                    <span>Start</span>
+                </div>
+                <div style="display: flex; align-items: center; margin: 3px 0;">
+                    <span style="background-color: black; width: 10px;
+                                 height: 10px; border-radius: 50%;
+                                 margin-right: 8px;"></span>
+                    <span>End</span>
+                </div>
             </div>'''
 
     legend_html = f'''
@@ -175,21 +195,7 @@ def add_legend(m, active_years, year_colors):
                 Deployment Year
             </div>
             {legend_items}
-            <div style="border-top: 1px solid #ccc; margin-top: 8px;
-                        padding-top: 8px;">
-                <div style="display: flex; align-items: center; margin: 3px 0;">
-                    <span style="background-color: #009E73; width: 10px;
-                                 height: 10px; border-radius: 50%;
-                                 margin-right: 8px;"></span>
-                    <span>Start</span>
-                </div>
-                <div style="display: flex; align-items: center; margin: 3px 0;">
-                    <span style="background-color: black; width: 10px;
-                                 height: 10px; border-radius: 50%;
-                                 margin-right: 8px;"></span>
-                    <span>End</span>
-                </div>
-            </div>
+            {marker_legend}
         </div>
     '''
 
@@ -301,6 +307,11 @@ def main():
         required=True,
         help='Path to save the HTML map'
     )
+    parser.add_argument(
+        '--markers',
+        action='store_true',
+        help='Show start/end markers on tracks'
+    )
     args = parser.parse_args()
 
     if not Path(args.db).exists():
@@ -320,11 +331,11 @@ def main():
     year_colors = generate_year_colors(active_years)
     print(f"Years: {sorted(active_years)}")
 
-    m = create_map(deployments, year_colors)
+    m = create_map(deployments, year_colors, show_markers=args.markers)
     if not m:
         sys.exit(1)
 
-    add_legend(m, active_years, year_colors)
+    add_legend(m, active_years, year_colors, show_markers=args.markers)
     add_save_button(m)
 
     print(f"Saving map to {args.output_path}...")
