@@ -125,7 +125,7 @@ def create_map(deployments, year_colors):
         # Start marker (Wong bluish green)
         folium.CircleMarker(
             location=coords[0],
-            radius=5,
+            radius=4,
             color='#009E73',
             fill=True,
             fill_color='#009E73',
@@ -136,7 +136,7 @@ def create_map(deployments, year_colors):
         # End marker (black)
         folium.CircleMarker(
             location=coords[-1],
-            radius=5,
+            radius=4,
             color='black',
             fill=True,
             fill_color='black',
