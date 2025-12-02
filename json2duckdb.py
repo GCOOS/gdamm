@@ -130,15 +130,63 @@ def import_deployment(con, file_path, force=False):
     return True
 
 
+def find_json_files(data_dir):
+    """Recursively find all .json files in directory."""
+    return sorted(Path(data_dir).rglob('*.json'))
+
+
+def import_single_file(con, data_file, force):
+    """Import a single file and return result."""
+    if not Path(data_file).exists():
+        print(f"{Fore.RED}Error: Data file not found: {data_file}")
+        return False
+
+    return import_deployment(con, data_file, force=force)
+
+
+def import_directory(con, data_dir, force):
+    """Import all JSON files from directory tree."""
+    json_files = find_json_files(data_dir)
+
+    if not json_files:
+        print(f"{Fore.YELLOW}No JSON files found in {data_dir}")
+        return False
+
+    print(f"Found {len(json_files)} JSON files")
+
+    stats = {'inserted': 0, 'skipped': 0, 'errors': 0}
+
+    for json_file in json_files:
+        result = import_deployment(con, str(json_file), force=force)
+        if result is True:
+            stats['inserted'] += 1
+        elif result is None:
+            stats['skipped'] += 1
+        else:
+            stats['errors'] += 1
+
+    print(f"\n{Fore.CYAN}Summary:{Style.RESET_ALL}")
+    print(f"  {Fore.GREEN}Inserted: {stats['inserted']}{Style.RESET_ALL}")
+    print(f"  {Fore.YELLOW}Skipped:  {stats['skipped']}{Style.RESET_ALL}")
+    if stats['errors'] > 0:
+        print(f"  {Fore.RED}Errors:   {stats['errors']}{Style.RESET_ALL}")
+
+    return stats['errors'] == 0
+
+
 def main():
     """Main entry point."""
     parser = argparse.ArgumentParser(
         description='Import GeoJSON glider data into DuckDB'
     )
-    parser.add_argument(
+    source_group = parser.add_mutually_exclusive_group(required=True)
+    source_group.add_argument(
         '--data-file',
-        required=True,
-        help='Path to GeoJSON file to import'
+        help='Path to single GeoJSON file to import'
+    )
+    source_group.add_argument(
+        '--data-dir',
+        help='Path to directory tree to scan for JSON files'
     )
     parser.add_argument(
         '--db',
@@ -152,23 +200,26 @@ def main():
     )
     args = parser.parse_args()
 
-    if not Path(args.data_file).exists():
-        print(f"{Fore.RED}Error: Data file not found: {args.data_file}")
-        sys.exit(1)
-
     con = duckdb.connect(args.db)
     create_schema(con)
 
-    result = import_deployment(con, args.data_file, force=args.force)
-    con.close()
-
-    if result is True:
-        print(f"{Fore.GREEN}Import completed successfully{Style.RESET_ALL}")
-    elif result is None:
-        # Skipped due to existing data (not an error)
-        sys.exit(0)
+    if args.data_file:
+        result = import_single_file(con, args.data_file, args.force)
+        con.close()
+        if result is True:
+            print(f"{Fore.GREEN}Import completed successfully{Style.RESET_ALL}")
+        elif result is None:
+            sys.exit(0)
+        else:
+            sys.exit(1)
     else:
-        sys.exit(1)
+        if not Path(args.data_dir).is_dir():
+            print(f"{Fore.RED}Error: Not a directory: {args.data_dir}")
+            sys.exit(1)
+        success = import_directory(con, args.data_dir, args.force)
+        con.close()
+        if not success:
+            sys.exit(1)
 
 
 if __name__ == '__main__':

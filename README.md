@@ -8,7 +8,7 @@ output with PNG export capability.
 
 - Interactive Leaflet map with USGS Topo basemap
 - Year-based color coding for deployment tracks (2023, 2024, 2025)
-- Start/end markers (green/red) to distinguish overlapping tracks
+- Start/end markers (green/black) to distinguish overlapping tracks
 - Save to PNG button for publication-ready images
 - DuckDB backend for efficient data storage
 
@@ -23,8 +23,12 @@ pip install duckdb folium colorama
 ### Import GeoJSON Data
 
 ```bash
+# Single file
 python json2duckdb.py --data-file data/<region>/<year>/<file>.json \
                       --db data/db/gliders.db
+
+# Bulk import (walks directory tree)
+python json2duckdb.py --data-dir data --db data/db/gliders.db
 ```
 
 Options:

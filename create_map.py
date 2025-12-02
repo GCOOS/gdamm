@@ -121,13 +121,13 @@ def create_map(deployments):
             tooltip=f"Start: {name}"
         ).add_to(m)
 
-        # End marker (red)
+        # End marker (black)
         folium.CircleMarker(
             location=coords[-1],
             radius=5,
-            color='red',
+            color='black',
             fill=True,
-            fill_color='red',
+            fill_color='black',
             fill_opacity=1.0,
             tooltip=f"End: {name}"
         ).add_to(m)
@@ -172,7 +172,7 @@ def add_legend(m, active_years):
                     <span>Start</span>
                 </div>
                 <div style="display: flex; align-items: center; margin: 3px 0;">
-                    <span style="background-color: red; width: 10px;
+                    <span style="background-color: black; width: 10px;
                                  height: 10px; border-radius: 50%;
                                  margin-right: 8px;"></span>
                     <span>End</span>

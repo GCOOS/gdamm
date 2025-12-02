@@ -7,7 +7,11 @@ code in this repository.
 
 ### Import deployment data
 ```bash
+# Single file
 python json2duckdb.py --data-file <geojson> --db data/db/gliders.db [--force]
+
+# Bulk import
+python json2duckdb.py --data-dir data --db data/db/gliders.db [--force]
 ```
 
 ### Generate map
@@ -36,7 +40,7 @@ python -c "import duckdb; print(duckdb.connect('data/db/gliders.db').execute('SE
 ### Map Features
 - USGS Topo basemap (includes "Gulf of America" labeling)
 - Year colors: 2023=red, 2024=blue, 2025=green
-- Green circle = deployment start, Red circle = deployment end
+- Green circle = deployment start, Black circle = deployment end
 - PNG export via dom-to-image-more library
 
 ## Dependencies
