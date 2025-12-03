@@ -42,11 +42,50 @@ Data coverage: 2023, 2024, 2025
 - [x] Validate data ingestion as new files are added
 - [x] Quality assurance for publication-ready output
 
+## Phase 4: GDAC Integration via erddapy
+
+### 4.1 Argument Parser Changes (`gdamm_gdac.py`)
+- [ ] Add `--gdac` to mutually exclusive group (with --data-file, --data-dir)
+- [ ] Add `--region` argument (gcoos, caracoos, maracoos, secoora)
+- [ ] Add `--contributor` argument (filter by institution)
+- [ ] Add `--start-date` argument (required with --gdac)
+- [ ] Add `--end-date` argument (required with --gdac)
+- [ ] Add validation: --gdac requires --start-date and --end-date
+- [ ] Add validation: --gdac requires at least one of --region or --contributor
+
+### 4.2 New Functions
+- [ ] `fetch_gdac_deployments(region, contributor, start_date, end_date)`
+  - Connect to IOOS Glider DAC ERDDAP (https://gliders.ioos.us/erddap/)
+  - Build query with filters
+  - Return list of deployment metadata
+- [ ] `fetch_deployment_track(deployment_id)`
+  - Fetch trajectory data for single deployment
+  - Return points with timestamps
+- [ ] `convert_erddap_to_linestring(track_data)`
+  - Convert ERDDAP response to WKT LineString
+  - Extract start/end times
+
+### 4.3 Dependencies
+- [ ] Add `erddapy` to requirements
+
+### 4.4 Testing
+- [ ] Args: `--gdac` without dates should error
+- [ ] Args: `--gdac` without region/contributor should error
+- [ ] Args: `--gdac` with only `--region` works
+- [ ] Args: `--gdac` with only `--contributor` works
+- [ ] Args: `--gdac` with both `--region` and `--contributor` works
+- [ ] Integration: Fetch single deployment from GDAC
+- [ ] Integration: Fetch multiple deployments with date range
+- [ ] Integration: Verify data imports correctly to DuckDB
+- [ ] End-to-end: Import via `--gdac`, generate map with `gdamm_map.py`
+
+### 4.5 Documentation
+- [ ] Update README.md with --gdac usage examples
+- [ ] Update CLAUDE.md with new functions and arguments
+
 ## Future Enhancements
 
 ### Nice to Have
-- [ ] Integrate erddapy for direct GDAC data retrieval
-  - Add `--gdac` argument to json2duckdb.py
-  - Pull deployment data directly from IOOS Glider DAC ERDDAP
-  - Eliminate manual download step
-  - Reference: https://github.com/ioos/erddapy
+- [ ] Add `--list` mode to show available deployments without importing
+- [ ] Add `--dry-run` to preview what would be imported
+- [ ] Support additional ERDDAP filters (depth, platform type, etc.)
