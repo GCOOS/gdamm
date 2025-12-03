@@ -31,11 +31,11 @@ pip install duckdb folium colorama
 
 ```bash
 # Single file
-python json2duckdb.py --data-file data/<region>/<year>/<file>.json \
+python gdamm_gdac.py --data-file data/<region>/<year>/<file>.json \
                       --db data/db/gliders.db
 
 # Bulk import (walks directory tree)
-python json2duckdb.py --data-dir data --db data/db/gliders.db
+python gdamm_gdac.py --data-dir data --db data/db/gliders.db
 ```
 
 Options:
@@ -45,11 +45,11 @@ Options:
 
 ```bash
 # Basic map
-python create_map.py --db data/db/gliders.db \
+python gdamm_map.py --db data/db/gliders.db \
                      --output-path maps/glider_tracks.html
 
 # With title and markers
-python create_map.py --db data/db/gliders.db \
+python gdamm_map.py --db data/db/gliders.db \
                      --output-path maps/glider_tracks.html \
                      --title "My Glider Deployments" \
                      --markers
@@ -115,7 +115,7 @@ GeoJSON downloads.
 Planned usage:
 ```bash
 # Import directly from GDAC (planned)
-python json2duckdb.py --gdac --region gcoos --year 2024 --db data/db/gliders.db
+python gdamm_gdac.py --gdac --region gcoos --year 2024 --db data/db/gliders.db
 ```
 
 This will query the ERDDAP server for available deployments, download track
