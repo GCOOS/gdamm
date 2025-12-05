@@ -7,6 +7,13 @@ code in this repository.
 
 ## Commands
 
+### Fetch deployment data from GDAC
+```bash
+# Fetch GeoJSON for deployments listed in a file (one ID per line)
+python gdamm_fetch.py --deployments-file data/gdac_list.txt \
+                      --output-path data/gcoos/2025
+```
+
 ### Import deployment data
 ```bash
 # Single file (path must follow data/<region>/<year>/<name>.json structure)
@@ -43,6 +50,12 @@ python -c "import duckdb; \
    tracks, start/end markers, and PNG export capability
 
 ### Key Functions
+- `gdac_client.py`:
+  - `build_erddap_url()` - constructs GDAC ERDDAP tabledap URL
+  - `fetch_deployment_geojson()` - fetches GeoJSON from GDAC
+- `gdamm_fetch.py`:
+  - `read_deployment_ids()` - reads deployment IDs from file
+  - `fetch_deployments()` - batch fetches and saves GeoJSON files
 - `gdamm_gdac.py`:
   - `extract_metadata()` - parses region/year/name from file path structure
   - `parse_geojson()` - reads GeoJSON, extracts time-sorted points

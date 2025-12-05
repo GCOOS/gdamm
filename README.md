@@ -32,6 +32,19 @@ pip install -r requirements.txt
 
 ## Usage
 
+### Fetch Data from GDAC
+
+```bash
+# Create a file with deployment IDs (one per line)
+# e.g., data/my_deployments.txt containing:
+#   bass-20250601T0000
+#   ori-20251001T0000
+
+# Fetch GeoJSON for all deployments
+python gdamm_fetch.py --deployments-file data/my_deployments.txt \
+                      --output-path data/gcoos/2025
+```
+
 ### Import GeoJSON Data
 
 ```bash
@@ -82,22 +95,14 @@ Options:
 - `--title`: Add title banner to map
 - `--markers`: Show start/end markers on tracks
 
-## Downloading Data from IOOS GDAC
+## Finding Deployment IDs
 
-Until direct GDAC integration is available (see Coming Soon), you'll need to
-manually download deployment data:
+Deployment IDs can be found on the
+[IOOS Glider DAC ERDDAP](https://gliders.ioos.us/erddap/tabledap/index.html).
+Each deployment has an ID like `bass-20250601T0000` or `ori-20251001T0000`.
 
-1. Visit the [IOOS Glider DAC ERDDAP](https://gliders.ioos.us/erddap/)
-2. Select the deployment of interest
-3. On the Data Access Form:
-   - Click "Uncheck All" to deselect all variables
-   - Select only: **time**, **latitude**, **longitude**
-   - Set the time slider to the beginning of the deployment
-4. Set File type to **geoJson**
-5. Click "Submit"
-6. Save the downloaded file to `data/<region>/<year>/<deployment_name>.json`
-
-![ERDDAP Data Access Form](gdamm_gdac.png)
+Create a text file with one deployment ID per line, then use `gdamm_fetch.py`
+to download the GeoJSON data automatically.
 
 ## Data Structure
 
@@ -134,6 +139,7 @@ Tested with 30 deployments across 4 regions (2023-2025):
 
 | Component | Status |
 |-----------|--------|
+| GDAC fetch | ✓ Passing |
 | Data import (single file) | ✓ Passing |
 | Data import (bulk) | ✓ Passing |
 | Data import (--force) | ✓ Passing |
@@ -145,18 +151,11 @@ Tested with 30 deployments across 4 regions (2023-2025):
 
 ## Coming Soon
 
-### Direct GDAC Access via erddapy
+### Integrated GDAC Fetch + Import
 
-Future versions will support pulling deployment data directly from the
-[IOOS Glider DAC ERDDAP](https://gliders.ioos.us/erddap/) server using
-[erddapy](https://github.com/ioos/erddapy), eliminating the need for manual
-GeoJSON downloads.
+Future versions will support fetching and importing in a single command:
 
-Planned usage:
 ```bash
-# Import directly from GDAC (planned)
-python gdamm_gdac.py --gdac --region gcoos --year 2024 --db data/db/gliders.db
+# Fetch from GDAC and import directly (planned)
+python gdamm_gdac.py --fetch --region gcoos --year 2025 --db data/db/gliders.db
 ```
-
-This will query the ERDDAP server for available deployments, download track
-data, and import directly into the local DuckDB database.
