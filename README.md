@@ -34,13 +34,17 @@ pip install -r requirements.txt
 
 ### Fetch Data from GDAC
 
-```bash
-# Create a file with deployment IDs (one per line)
-# e.g., data/my_deployments.txt containing:
-#   bass-20250601T0000
-#   ori-20251001T0000
+Create a text file with deployment IDs (one per line):
 
-# Fetch GeoJSON for all deployments
+```text
+bass-20250601T0000
+ori-20251001T0000
+mote-holly-20250805T0000
+```
+
+Then fetch the GeoJSON data:
+
+```bash
 python gdamm_fetch.py --deployments-file data/my_deployments.txt \
                       --output-path data/gcoos/2025
 ```
