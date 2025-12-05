@@ -49,6 +49,25 @@ python gdamm_fetch.py --deployments-file data/my_deployments.txt \
                       --output-path data/gcoos/2025
 ```
 
+#### Organizing Data for Multi-Year Maps
+
+To display multiple years on a single map, data files must be organized by
+region and year. The easiest approach is to create separate deployment list
+files for each year:
+
+```bash
+# Fetch 2024 deployments
+python gdamm_fetch.py --deployments-file data/gcoos_2024.txt \
+                      --output-path data/gcoos/2024
+
+# Fetch 2025 deployments
+python gdamm_fetch.py --deployments-file data/gcoos_2025.txt \
+                      --output-path data/gcoos/2025
+```
+
+Alternatively, you can fetch all deployments at once and manually move the
+files into the appropriate `data/<region>/<year>/` folders afterward.
+
 ### Import GeoJSON Data
 
 ```bash
