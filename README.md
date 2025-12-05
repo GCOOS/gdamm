@@ -60,6 +60,24 @@ python gdamm_map.py --db data/db/gliders.db \
                      --markers
 ```
 
+### View the Map
+
+Open the generated HTML file in your web browser:
+
+```bash
+# macOS
+open maps/glider_tracks.html
+
+# Linux
+xdg-open maps/glider_tracks.html
+
+# Windows
+start maps/glider_tracks.html
+```
+
+Or simply double-click the `.html` file in your file manager. **Note:** The
+`.json` files in the `data/` directory are raw input data, not viewable maps.
+
 Options:
 - `--title`: Add title banner to map
 - `--markers`: Show start/end markers on tracks
