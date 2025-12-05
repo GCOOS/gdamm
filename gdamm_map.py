@@ -295,7 +295,7 @@ def get_save_button_js():
                 domtoimage.toPng(mapContainer, {quality: 1.0, bgcolor: '#fff'})
                 .then(function(dataUrl) {
                     var link = document.createElement('a');
-                    link.download = 'hurricane_glider_map.png';
+                    link.download = 'gdamm_map.png';
                     link.href = dataUrl;
                     link.click();
                     resetBtn();
