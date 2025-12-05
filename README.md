@@ -22,7 +22,7 @@ output with PNG export capability.
 ## Installation
 
 ```bash
-pip install duckdb folium colorama
+pip install -r requirements.txt
 ```
 
 ## Usage
