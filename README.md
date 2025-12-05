@@ -110,17 +110,16 @@ to download the GeoJSON data automatically.
 
 ## Data Structure
 
-The only required directory is `data/db/` for the DuckDB database. GeoJSON
-files can be stored anywhere - the directory structure is optional:
+The database name and location are user-defined via the `--db` argument. You
+can create separate databases for different projects:
 
-```
-data/
-└── db/
-    └── gdamm.db
+```bash
+python gdamm_gdac.py --data-dir data/gcoos/2025 --db data/db/gcoos_2025.db
+python gdamm_gdac.py --data-dir data/secoora --db data/db/secoora.db
 ```
 
-GeoJSON files should contain Point features with `time` properties. The import
-tool converts these to LineString geometries ordered by timestamp.
+GeoJSON files can be stored anywhere. The import tool converts Point features
+with `time` properties to LineString geometries ordered by timestamp.
 
 ## Color Palette
 
