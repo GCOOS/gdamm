@@ -18,15 +18,15 @@ python gdamm_fetch.py --deployments-file data/gdac_list.txt \
 ```bash
 # Single file (path must follow data/<region>/<year>/<name>.json structure)
 python gdamm_gdac.py --data-file data/gcoos/2024/deployment.json \
-                      --db data/db/gliders.db [--force]
+                      --db data/db/gdamm.db [--force]
 
 # Bulk import (recursively finds all .json files)
-python gdamm_gdac.py --data-dir data --db data/db/gliders.db [--force]
+python gdamm_gdac.py --data-dir data --db data/db/gdamm.db [--force]
 ```
 
 ### Generate map
 ```bash
-python gdamm_map.py --db data/db/gliders.db --output-path maps/glider_tracks.html
+python gdamm_map.py --db data/db/gdamm.db --output-path maps/glider_tracks.html
 ```
 
 Optional arguments:
@@ -36,7 +36,7 @@ Optional arguments:
 ### Query database
 ```bash
 python -c "import duckdb; \
-  print(duckdb.connect('data/db/gliders.db').execute( \
+  print(duckdb.connect('data/db/gdamm.db').execute( \
     'SELECT * FROM deployments').fetchdf())"
 ```
 
