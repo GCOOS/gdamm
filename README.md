@@ -68,6 +68,10 @@ python gdamm_fetch.py --deployments-file data/gcoos_2025.txt \
 Alternatively, you can fetch all deployments at once and manually move the
 files into the appropriate `data/<region>/<year>/` folders afterward.
 
+**Note:** When full GDAC integration is implemented, years will be inferred
+automatically from deployment IDs and files will be organized into the correct
+folders without manual intervention.
+
 ### Import GeoJSON Data
 
 ```bash
