@@ -1,2 +1,5 @@
 *.png
 data/**/*.json
+*.db
+*.html
+
