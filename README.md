@@ -59,6 +59,23 @@ Options:
 - `--title`: Add title banner to map
 - `--markers`: Show start/end markers on tracks
 
+## Downloading Data from IOOS GDAC
+
+Until direct GDAC integration is available (see Coming Soon), you'll need to
+manually download deployment data:
+
+1. Visit the [IOOS Glider DAC ERDDAP](https://gliders.ioos.us/erddap/)
+2. Select the deployment of interest
+3. On the Data Access Form:
+   - Click "Uncheck All" to deselect all variables
+   - Select only: **time**, **latitude**, **longitude**
+   - Set the time slider to the beginning of the deployment
+4. Set File type to **geoJson**
+5. Click "Submit"
+6. Save the downloaded file to `data/<region>/<year>/<deployment_name>.json`
+
+![ERDDAP Data Access Form](gdamm_gdac.png)
+
 ## Data Structure
 
 ```
