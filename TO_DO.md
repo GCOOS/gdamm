@@ -42,46 +42,27 @@ Data coverage: 2023, 2024, 2025
 - [x] Validate data ingestion as new files are added
 - [x] Quality assurance for publication-ready output
 
-## Phase 4: GDAC Integration via erddapy
+## Phase 4: GDAC Fetch Tool
 
-### 4.1 Argument Parser Changes (`gdamm_gdac.py`)
-- [ ] Add `--gdac` to mutually exclusive group (with --data-file, --data-dir)
-- [ ] Add `--region` argument (gcoos, caracoos, maracoos, secoora)
-- [ ] Add `--contributor` argument (filter by institution)
-- [ ] Add `--start-date` argument (required with --gdac)
-- [ ] Add `--end-date` argument (required with --gdac)
-- [ ] Add validation: --gdac requires --start-date and --end-date
-- [ ] Add validation: --gdac requires at least one of --region or --contributor
+### 4.1 Standalone Fetch Tool (`gdamm_fetch.py`)
+- [x] Create `gdac_client.py` module with ERDDAP URL builder
+- [x] Create `gdamm_fetch.py` CLI tool
+  - Takes `--deployments-file` (list of deployment IDs)
+  - Takes `--output-path` (directory for GeoJSON files)
+- [x] Fetch time, latitude, longitude as GeoJSON from GDAC ERDDAP
 
-### 4.2 New Functions
-- [ ] `fetch_gdac_deployments(region, contributor, start_date, end_date)`
-  - Connect to IOOS Glider DAC ERDDAP (https://gliders.ioos.us/erddap/)
-  - Build query with filters
-  - Return list of deployment metadata
-- [ ] `fetch_deployment_track(deployment_id)`
-  - Fetch trajectory data for single deployment
-  - Return points with timestamps
-- [ ] `convert_erddap_to_linestring(track_data)`
-  - Convert ERDDAP response to WKT LineString
-  - Extract start/end times
+### 4.2 Import Tool Updates (`gdamm_gdac.py`)
+- [x] Extract year from filename (not folder structure)
+- [x] Support any directory structure (no year folders required)
+- [x] Use full deployment ID as name (supports multiple deployments per vehicle)
+- [x] Skip invalid filenames with warning
 
-### 4.3 Dependencies
-- [ ] Add `erddapy` to requirements
+### 4.3 Documentation
+- [x] Update README.md with fetch usage examples
+- [x] Update CLAUDE.md with new functions and arguments
 
-### 4.4 Testing
-- [ ] Args: `--gdac` without dates should error
-- [ ] Args: `--gdac` without region/contributor should error
-- [ ] Args: `--gdac` with only `--region` works
-- [ ] Args: `--gdac` with only `--contributor` works
-- [ ] Args: `--gdac` with both `--region` and `--contributor` works
-- [ ] Integration: Fetch single deployment from GDAC
-- [ ] Integration: Fetch multiple deployments with date range
-- [ ] Integration: Verify data imports correctly to DuckDB
-- [ ] End-to-end: Import via `--gdac`, generate map with `gdamm_map.py`
-
-### 4.5 Documentation
-- [ ] Update README.md with --gdac usage examples
-- [ ] Update CLAUDE.md with new functions and arguments
+### 4.4 Future: Integrated Fetch + Import
+- [ ] Add `--fetch` flag to `gdamm_gdac.py` for single-command workflow
 
 ## Future Enhancements
 
