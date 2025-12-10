@@ -3,6 +3,7 @@
 
 import argparse
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -32,14 +33,28 @@ def create_schema(con):
 
 
 def extract_metadata(file_path):
-    """Extract region, year, and name from file path.
+    """Extract region, year, and name from file path and filename.
 
-    Expected path structure: .../data/{region}/{year}/{name}.json
+    Year is extracted from filename timestamp (e.g., bass-20250601T0000.json).
+    Region is the parent directory name.
+    Name is everything before the timestamp.
+
+    Returns:
+        Tuple of (name, region, year) or None if filename is invalid.
     """
     path = Path(file_path)
-    name = path.stem
-    year = int(path.parent.name)
-    region = path.parent.parent.name
+    filename = path.stem
+
+    # Match timestamp pattern: YYYYMMDDTHHMMSS at end of filename
+    match = re.search(r'-(\d{4})(\d{4}T\d{4})$', filename)
+    if not match:
+        return None
+
+    year = int(match.group(1))
+    # Name is everything before the last dash and timestamp
+    name = filename[:match.start()]
+    region = path.parent.name
+
     return name, region, year
 
 
@@ -87,29 +102,46 @@ def check_existing(con, name, region, year):
     return existing is not None
 
 
+def handle_existing(con, name, region, year, force):
+    """Handle existing deployment record.
+
+    Returns:
+        True if we should proceed with insert, False to skip, None to abort.
+    """
+    if not check_existing(con, name, region, year):
+        return True
+
+    if not force:
+        print(
+            f"{Fore.YELLOW}This dataset already exists: "
+            f"{name} ({region}/{year}){Style.RESET_ALL}"
+        )
+        print(f"{Fore.YELLOW}Use --force to overwrite{Style.RESET_ALL}")
+        return None
+
+    con.execute(
+        "DELETE FROM deployments WHERE name = ? AND region = ? AND year = ?",
+        [name, region, year]
+    )
+    print(f"Deleted existing deployment: {name} ({region}/{year})")
+    return True
+
+
 def import_deployment(con, file_path, force=False):
     """Import a single deployment file into the database."""
-    name, region, year = extract_metadata(file_path)
+    metadata = extract_metadata(file_path)
+    if metadata is None:
+        print(
+            f"{Fore.YELLOW}Skipping invalid filename: {file_path}"
+            f"{Style.RESET_ALL}"
+        )
+        return 'invalid'
 
-    # Check if deployment already exists
-    if check_existing(con, name, region, year):
-        if not force:
-            print(
-                f"{Fore.YELLOW}This dataset already exists: "
-                f"{name} ({region}/{year}){Style.RESET_ALL}"
-            )
-            print(
-                f"{Fore.YELLOW}Use --force to overwrite{Style.RESET_ALL}"
-            )
-            return None  # Signal that we skipped (not an error)
-        else:
-            # Delete existing record
-            con.execute(
-                "DELETE FROM deployments "
-                "WHERE name = ? AND region = ? AND year = ?",
-                [name, region, year]
-            )
-            print(f"Deleted existing deployment: {name} ({region}/{year})")
+    name, region, year = metadata
+
+    proceed = handle_existing(con, name, region, year, force)
+    if proceed is not True:
+        return proceed
 
     points = parse_geojson(file_path)
 
@@ -155,7 +187,7 @@ def import_directory(con, data_dir, force):
 
     print(f"Found {len(json_files)} JSON files")
 
-    stats = {'inserted': 0, 'skipped': 0, 'errors': 0}
+    stats = {'inserted': 0, 'skipped': 0, 'invalid': 0, 'errors': 0}
 
     for json_file in json_files:
         result = import_deployment(con, str(json_file), force=force)
@@ -163,12 +195,16 @@ def import_directory(con, data_dir, force):
             stats['inserted'] += 1
         elif result is None:
             stats['skipped'] += 1
+        elif result == 'invalid':
+            stats['invalid'] += 1
         else:
             stats['errors'] += 1
 
     print(f"\n{Fore.CYAN}Summary:{Style.RESET_ALL}")
     print(f"  {Fore.GREEN}Inserted: {stats['inserted']}{Style.RESET_ALL}")
     print(f"  {Fore.YELLOW}Skipped:  {stats['skipped']}{Style.RESET_ALL}")
+    if stats['invalid'] > 0:
+        print(f"  {Fore.YELLOW}Invalid:  {stats['invalid']}{Style.RESET_ALL}")
     if stats['errors'] > 0:
         print(f"  {Fore.RED}Errors:   {stats['errors']}{Style.RESET_ALL}")
 

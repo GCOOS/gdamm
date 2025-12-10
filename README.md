@@ -8,15 +8,15 @@ output with PNG export capability.
 
 ## Features
 
-- Import glider deployment data from GeoJSON files
-- Bulk import from directory trees
-- Interactive Leaflet map with USGS Topo basemap
+- Fetch deployment data directly from IOOS Glider DAC
+- Import GeoJSON files from any directory structure
+- Year automatically extracted from deployment ID (e.g., `bass-20250601T0000`)
+- Interactive HTML map with USGS Topo basemap
 - Colorblind-friendly palette (Wong, 2011) for year-based track coloring
-- Dynamic color assignment for any year in the dataset
+- Custom title banner for presentations
 - Optional start/end markers to distinguish overlapping tracks
-- Optional title banner for presentations
-- Deployment counts per year in legend
 - Save to PNG button for publication-ready images
+- Fast: 30 deployments fetched, imported, and mapped in under a minute
 - DuckDB backend for efficient data storage
 
 ## Installation
@@ -46,42 +46,29 @@ Then fetch the GeoJSON data:
 
 ```bash
 python gdamm_fetch.py --deployments-file data/my_deployments.txt \
-                      --output-path data/gcoos/2025
+                      --output-path data/gcoos
 ```
 
-#### Organizing Data for Multi-Year Maps
-
-To display multiple years on a single map, data files must be organized by
-region and year. The easiest approach is to create separate deployment list
-files for each year:
-
-```bash
-# Fetch 2024 deployments
-python gdamm_fetch.py --deployments-file data/gcoos_2024.txt \
-                      --output-path data/gcoos/2024
-
-# Fetch 2025 deployments
-python gdamm_fetch.py --deployments-file data/gcoos_2025.txt \
-                      --output-path data/gcoos/2025
-```
-
-Alternatively, you can fetch all deployments at once and manually move the
-files into the appropriate `data/<region>/<year>/` folders afterward.
-
-**Note:** When full GDAC integration is implemented, years will be inferred
-automatically from deployment IDs and files will be organized into the correct
-folders without manual intervention.
+You can organize files however you like. The year is extracted automatically
+from each deployment ID filename, so no specific folder structure is required.
 
 ### Import GeoJSON Data
 
 ```bash
 # Single file
-python gdamm_gdac.py --data-file data/<region>/<year>/<file>.json \
+python gdamm_gdac.py --data-file data/gcoos/bass-20250601T0000.json \
                       --db data/db/gdamm.db
 
 # Bulk import (walks directory tree)
-python gdamm_gdac.py --data-dir data --db data/db/gdamm.db
+python gdamm_gdac.py --data-dir data/gcoos --db data/db/gdamm.db
 ```
+
+The import tool extracts metadata from each filename:
+- **Year**: From the timestamp (e.g., `20250601` → 2025)
+- **Name**: Everything before the timestamp (e.g., `mote-holly`)
+- **Region**: The parent folder name
+
+Files with invalid names are skipped with a warning.
 
 Options:
 - `--force`: Overwrite existing deployment data
@@ -133,16 +120,16 @@ to download the GeoJSON data automatically.
 
 ## Data Structure
 
+GeoJSON files can be stored anywhere. The import tool extracts metadata from
+filenames, so no specific folder structure is required.
+
 The database name and location are user-defined via the `--db` argument. You
 can create separate databases for different projects:
 
 ```bash
-python gdamm_gdac.py --data-dir data/gcoos/2025 --db data/db/gcoos_2025.db
+python gdamm_gdac.py --data-dir data/gcoos --db data/db/gcoos.db
 python gdamm_gdac.py --data-dir data/secoora --db data/db/secoora.db
 ```
-
-GeoJSON files can be stored anywhere. The import tool converts Point features
-with `time` properties to LineString geometries ordered by timestamp.
 
 ## Color Palette
 
@@ -168,11 +155,10 @@ Tested with 30 deployments across 4 regions (2023-2025):
 
 ## Coming Soon
 
-### Integrated GDAC Fetch + Import
-
 Future versions will support fetching and importing in a single command:
 
 ```bash
 # Fetch from GDAC and import directly (planned)
-python gdamm_gdac.py --fetch --region gcoos --year 2025 --db data/db/gdamm.db
+python gdamm_gdac.py --fetch --deployments-file data/list.txt \
+                      --db data/db/gdamm.db
 ```

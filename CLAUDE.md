@@ -16,12 +16,12 @@ python gdamm_fetch.py --deployments-file data/gdac_list.txt \
 
 ### Import deployment data
 ```bash
-# Single file (path must follow data/<region>/<year>/<name>.json structure)
-python gdamm_gdac.py --data-file data/gcoos/2024/deployment.json \
+# Single file
+python gdamm_gdac.py --data-file data/gcoos/bass-20250601T0000.json \
                       --db data/db/gdamm.db [--force]
 
 # Bulk import (recursively finds all .json files)
-python gdamm_gdac.py --data-dir data --db data/db/gdamm.db [--force]
+python gdamm_gdac.py --data-dir data/gcoos --db data/db/gdamm.db [--force]
 ```
 
 ### Generate map
@@ -43,9 +43,9 @@ python -c "import duckdb; \
 ## Architecture
 
 ### Data Pipeline
-1. GeoJSON files (Point features with timestamps) stored in `data/<region>/<year>/`
-2. `gdamm_gdac.py` parses GeoJSON, converts points to WKT LineString, stores in
-   DuckDB with metadata (name, region, year, start/end times)
+1. `gdamm_fetch.py` fetches GeoJSON from GDAC ERDDAP, saves to output directory
+2. `gdamm_gdac.py` parses GeoJSON, extracts year from filename, converts points
+   to WKT LineString, stores in DuckDB with metadata (name, region, year)
 3. `gdamm_map.py` queries DuckDB, renders Folium/Leaflet map with year-colored
    tracks, start/end markers, and PNG export capability
 
@@ -57,7 +57,7 @@ python -c "import duckdb; \
   - `read_deployment_ids()` - reads deployment IDs from file
   - `fetch_deployments()` - batch fetches and saves GeoJSON files
 - `gdamm_gdac.py`:
-  - `extract_metadata()` - parses region/year/name from file path structure
+  - `extract_metadata()` - parses name/year from filename, region from folder
   - `parse_geojson()` - reads GeoJSON, extracts time-sorted points
   - `points_to_linestring()` - converts points to WKT LineString
 - `gdamm_map.py`:
