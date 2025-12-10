@@ -37,7 +37,7 @@ def extract_metadata(file_path):
 
     Year is extracted from filename timestamp (e.g., bass-20250601T0000.json).
     Region is the parent directory name.
-    Name is everything before the timestamp.
+    Name is the full deployment ID (filename without extension).
 
     Returns:
         Tuple of (name, region, year) or None if filename is invalid.
@@ -51,8 +51,7 @@ def extract_metadata(file_path):
         return None
 
     year = int(match.group(1))
-    # Name is everything before the last dash and timestamp
-    name = filename[:match.start()]
+    name = filename  # Use full deployment ID as name
     region = path.parent.name
 
     return name, region, year
